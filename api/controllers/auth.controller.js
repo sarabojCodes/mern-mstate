@@ -1,0 +1,16 @@
+import User from "../models/user.model.js";
+import bycrypt from "bcrypt";
+export const signup = async (req, res) => {
+  const { username, email, password } = req.body;
+  const hashedpassword = bycrypt.hashSync(password, 10);
+  const newUser = new User({ username, email, password: hashedpassword });
+  try {
+    await newUser.save();
+    res.status(200).json({
+      status: 200,
+      message: "create successfully",
+    });
+  } catch (error) {
+    res.status(500).json(error)
+  }
+};
