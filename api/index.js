@@ -1,17 +1,14 @@
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 const app = express();
 
 mongoose
-  .connect(
-    process.env.DATABASE_URL,
-    {
-      dbName: "mern-app-collection",
-    }
-  )
+  .connect(process.env.DATABASE_URL, {
+    dbName: "mern-app-collection",
+  })
   .then(() => {
     console.log("database connected successfully");
   })
