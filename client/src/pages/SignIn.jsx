@@ -1,10 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInFailure,
+  signInSuccess,
+  singInStart,
+} from "../redux/user/userSlice";
 const SignIn = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {error,loading} = useSelector(state=>state.user)
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+   
   const handlerChange = (e) => {
     setFormData({
       ...formData,
@@ -14,7 +21,7 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
+      dispatch(singInStart());
       const res = await fetch("/api/auth/signin", {
         method: "POST",
         headers: {
@@ -24,21 +31,22 @@ const SignIn = () => {
       });
       const data = await res.json();
       if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
+        // setError(data.message);
+        // setLoading(false);
+        dispatch(signInFailure(data.message));
         return;
       }
-      setLoading(false);
-      navigate("/")
+      // setLoading(false);
+      dispatch(signInSuccess(data.rest));
+      navigate("/");
     } catch (error) {
-      setError(error.message);
+      dispatch(signInFailure(error.message));
     }
   };
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
-        
         <input
           type="email"
           placeholder="Email"
