@@ -4,6 +4,9 @@ import {
   updateUserFailed,
   updateUserStart,
   updateUserSuccess,
+  deleteUserFailer,
+  deleteUserStart,
+  deleteUserSuccess
 } from "../redux/user/userSlice";
 import {
   getDownloadURL,
@@ -75,6 +78,24 @@ const Profile = () => {
       dispatch(updateUserFailed(error.message));
     }
   };
+
+  const handleDeleteUser =  async ()=>{
+     try{
+        dispatch(deleteUserStart())
+        const res = await fetch(`/api/user/delete/${currentUser._id}`,{
+          method:"DELETE"
+        })
+        const data = await res.json();
+        console.log(data)
+        if(data.success){
+           dispatch(deleteUserSuccess())
+        }else{
+          dispatch(deleteUserFailer(data.message))
+        }
+     }catch(error){
+
+     }
+  }
   useEffect(() => {
     if (file) {
       handleFileupload(file);
@@ -140,7 +161,7 @@ const Profile = () => {
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete account</span>
+        <span onClick={handleDeleteUser} className="text-red-700 cursor-pointer">Delete account</span>
         <span className="text-red-700 cursor-pointer">Sign out</span>
       </div>
       <p className="text-center text-red-600">
