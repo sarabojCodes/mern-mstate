@@ -6,7 +6,10 @@ import {
   updateUserSuccess,
   deleteUserFailer,
   deleteUserStart,
-  deleteUserSuccess
+  deleteUserSuccess,
+  signOutStart,
+  signOutFailed,
+  signOutSuccess
 } from "../redux/user/userSlice";
 import {
   getDownloadURL,
@@ -96,6 +99,16 @@ const Profile = () => {
 
      }
   }
+  const handleSingOut = async ()=>{
+       dispatch(signOutStart)
+       const res = await fetch(`/api/auth/signout`)
+       const data = await res.json()
+       if(data.success){
+        dispatch(signOutSuccess())
+       }else{
+          dispatch(signOutFailed(data.message))
+       }
+  }
   useEffect(() => {
     if (file) {
       handleFileupload(file);
@@ -148,10 +161,11 @@ const Profile = () => {
           onChange={handleChange}
         />
         <input
-          type="text"
+          type="password"
           id="password"
           placeholder="password"
           className="border p-3 rounded-lg"
+          onChange={handleChange}
         />
 
         <button
@@ -162,7 +176,7 @@ const Profile = () => {
       </form>
       <div className="flex justify-between mt-5">
         <span onClick={handleDeleteUser} className="text-red-700 cursor-pointer">Delete account</span>
-        <span className="text-red-700 cursor-pointer">Sign out</span>
+        <span onClick={handleSingOut} className="text-red-700 cursor-pointer">Sign out</span>
       </div>
       <p className="text-center text-red-600">
         {error?error:''}
