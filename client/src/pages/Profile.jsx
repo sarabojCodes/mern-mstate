@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {Link} from "react-router-dom"
 import {
   updateUserFailed,
   updateUserStart,
@@ -173,6 +174,11 @@ const Profile = () => {
         className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
            {loading?"Loading":'Update'}
         </button>
+        <Link to={"/create-listing"}
+         className="bg-green-500 text-white w-full py-3 rounded-lg text-center hover:bg-green-600"
+        >
+        Create listing
+        </Link>
       </form>
       <div className="flex justify-between mt-5">
         <span onClick={handleDeleteUser} className="text-red-700 cursor-pointer">Delete account</span>
