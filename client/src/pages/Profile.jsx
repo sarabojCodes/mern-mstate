@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {Link} from "react-router-dom"
+import { Link } from "react-router-dom";
 import {
   updateUserFailed,
   updateUserStart,
@@ -10,7 +10,7 @@ import {
   deleteUserSuccess,
   signOutStart,
   signOutFailed,
-  signOutSuccess
+  signOutSuccess,
 } from "../redux/user/userSlice";
 import {
   getDownloadURL,
@@ -22,13 +22,15 @@ import { app } from "../firebase";
 
 const Profile = () => {
   const dispatch = useDispatch();
-  const { currentUser,loading,error } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef();
   const [file, setFile] = useState(undefined);
   const [filePer, setFilePer] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formdata, setFormData] = useState({});
-  const  [updateSuccess,setUpdateSuccess] = useState(false)
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showlistingError, setShowListingError] = useState(false);
+  const [userListing, setUserListing] = useState([]);
 
   const handleFileupload = (file) => {
     const storage = getStorage(app);
@@ -70,11 +72,11 @@ const Profile = () => {
         body: JSON.stringify(formdata),
       });
       const data = await res.json();
-      console.log(data,formdata);
+      console.log(data, formdata);
       if (data.success) {
         dispatch(updateUserSuccess(data.rest));
-        setFormData({})
-        setUpdateSuccess(true)
+        setFormData({});
+        setUpdateSuccess(true);
       } else {
         dispatch(updateUserFailed(data.message));
       }
@@ -83,33 +85,47 @@ const Profile = () => {
     }
   };
 
-  const handleDeleteUser =  async ()=>{
-     try{
-        dispatch(deleteUserStart())
-        const res = await fetch(`/api/user/delete/${currentUser._id}`,{
-          method:"DELETE"
-        })
-        const data = await res.json();
-        console.log(data)
-        if(data.success){
-           dispatch(deleteUserSuccess())
-        }else{
-          dispatch(deleteUserFailer(data.message))
-        }
-     }catch(error){
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.success) {
+        dispatch(deleteUserSuccess());
+      } else {
+        dispatch(deleteUserFailer(data.message));
+      }
+    } catch (error) {}
+  };
+  const handleSingOut = async () => {
+    dispatch(signOutStart);
+    const res = await fetch(`/api/auth/signout`);
+    const data = await res.json();
+    if (data.success) {
+      dispatch(signOutSuccess());
+    } else {
+      dispatch(signOutFailed(data.message));
+    }
+  };
 
-     }
-  }
-  const handleSingOut = async ()=>{
-       dispatch(signOutStart)
-       const res = await fetch(`/api/auth/signout`)
-       const data = await res.json()
-       if(data.success){
-        dispatch(signOutSuccess())
-       }else{
-          dispatch(signOutFailed(data.message))
-       }
-  }
+  const handleShowListings = async () => {
+    try {
+      setShowListingError(false);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListingError(data.message);
+      } else {
+        setUserListing(data);
+        console.log(data);
+      }
+    } catch (error) {
+      setShowListingError(error.message);
+    }
+  };
   useEffect(() => {
     if (file) {
       handleFileupload(file);
@@ -170,26 +186,71 @@ const Profile = () => {
         />
 
         <button
-         disabled={loading}
-        className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
-           {loading?"Loading":'Update'}
-        </button>
-        <Link to={"/create-listing"}
-         className="bg-green-500 text-white w-full py-3 rounded-lg text-center hover:bg-green-600"
+          disabled={loading}
+          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80"
         >
-        Create listing
+          {loading ? "Loading" : "Update"}
+        </button>
+        <Link
+          to={"/create-listing"}
+          className="bg-green-500 text-white w-full py-3 rounded-lg text-center hover:bg-green-600"
+        >
+          Create listing
         </Link>
       </form>
       <div className="flex justify-between mt-5">
-        <span onClick={handleDeleteUser} className="text-red-700 cursor-pointer">Delete account</span>
-        <span onClick={handleSingOut} className="text-red-700 cursor-pointer">Sign out</span>
+        <span
+          onClick={handleDeleteUser}
+          className="text-red-700 cursor-pointer"
+        >
+          Delete account
+        </span>
+        <span onClick={handleSingOut} className="text-red-700 cursor-pointer">
+          Sign out
+        </span>
       </div>
-      <p className="text-center text-red-600">
-        {error?error:''}
-      </p>
+      <p className="text-center text-red-600">{error ? error : ""}</p>
       <p className="text-center text-green-600">
-        {updateSuccess?"Success":""}
+        {updateSuccess ? "Success" : ""}
       </p>
+      <button
+        onClick={handleShowListings}
+        className="text-green-700 text-center w-full mt-6"
+      >
+        Show Listing
+      </button>
+      <p>{showlistingError ? "Error showing listings" : ""}</p>
+      {userListing && userListing.length > 0 && (
+        <div className="flex flex-col gap-4 ">
+          <h1 className="text-2xl text-center font-semibold my-7">Your Listings</h1>
+          {userListing.map((listing) => {
+            return (
+              <div
+                key={listing._id}
+                className="border rounded-lg p-3 flex justify-between items-center gap-4 mb-2"
+              >
+                <Link to={`/listing/${listing._id}`}>
+                  <img
+                    src={listing.imageUrls[0]}
+                    alt="listing"
+                    className="object-contain rounded-lg w-16 h-16"
+                  />
+                </Link>
+                <Link
+                  className="text-slate-700 font-semibold flex-1 hover:underline truncate"
+                  to={`/listing/${listing._id}`}
+                >
+                  <p>{listing.name}</p>
+                </Link>
+                <div className="flex flex-col items-center">
+                  <button className="text-red-700 uppercase">Delete</button>
+                  <button className="text-green-400 uppercase">Edit</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
