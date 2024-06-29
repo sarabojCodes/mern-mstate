@@ -33,18 +33,35 @@ export const deleteListing = async (req, res, next) => {
 };
 
 export const updateListing = async (req, res, next) => {
-   try {
-  const listing = await listingModel.findById(req.params.id);
-  if (!listing) {
-    return next(errorHandler(404, "Listing not found"));
+  try {
+    const listing = await listingModel.findById(req.params.id);
+    if (!listing) {
+      return next(errorHandler(404, "Listing not found"));
+    }
+    if (req.user.id !== listing.userRef) {
+      return next(errorHandler(401, "You can only update your own listings"));
+    }
+
+    const updatedListingfunc = await listingModel.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    console.log(updatedListingfunc);
+    res.json(updatedListingfunc);
+  } catch (error) {
+    next(error);
   }
-  if (req.user.id !== listing.userRef) {
-    return next(errorHandler(401, "You can only update your own listings"));
-  }
- 
-    const updatedListingfunc = await listingModel.findByIdAndUpdate(req.params.id,req.body,{new:true});
-    console.log(updatedListingfunc)
-    res.json(updatedListingfunc)
+};
+
+export const getListingData = async (req, res, next) => {
+  try {
+    const isChecktoken = await listingModel.findById(req.params.id);
+    if (!isChecktoken) {
+      return next(errorHandler(404, "You can get only your own listings!"));
+    }
+    console.log(isChecktoken)
+    res.json(isChecktoken);
   } catch (error) {
     next(error);
   }
