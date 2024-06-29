@@ -1,3 +1,4 @@
+import listingModel from "../models/listing.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcrypt from "bcrypt";
@@ -13,11 +14,9 @@ export const updateUser = async (req, res, next) => {
   try {
     console.log(req.body);
     if (req.body.password) {
-      
-      req.body.password =   bcrypt.hashSync(req.body.password, 10);
+      req.body.password = bcrypt.hashSync(req.body.password, 10);
     }
 
-    
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       {
@@ -43,16 +42,32 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const deleteUser = async (req, res, next) => {
-  console.log(req.params.id,req.user._id)
+  console.log(req.params.id, req.user._id);
   if (req.params.id !== req.user.id)
     return next(errorHandler(401, "You can delete only your own account"));
   try {
-     await User.findByIdAndDelete(req.params.id)
-     res.status(200).clearCookie('access_token').json({
-      success:true,
-      message:"User deleted successfully!"
-     })
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).clearCookie("access_token").json({
+      success: true,
+      message: "User deleted successfully!",
+    });
   } catch (error) {
-     next(error)
+    next(error);
+  }
+};
+
+export const getUserListings = async (req, res, next) => {
+  if (req.user.id === req.params.id) {
+    try {
+
+        console.log(req.params.id)
+        const listings = await listingModel.find({userRef:req.params.id});
+        res.status(200).json(listings)
+    } catch (errr) {
+      next(errr)
+    }
+  } else {
+
+    next(errorHandler(401,"You can only view your own listings"))
   }
 };
