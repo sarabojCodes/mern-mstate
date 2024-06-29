@@ -126,6 +126,22 @@ const Profile = () => {
       setShowListingError(error.message);
     }
   };
+  const handleDeleteListing = async (lisingId)=>{
+     try{
+            const res = await fetch(`/api/listing/delete/${lisingId}`,{
+              method:"DELETE"
+            })
+            const data = await res.json()
+            if(data.success === false){
+               return console.log(data.message)
+            }
+            setUserListing(state=>{
+              return  state.filter(w=>w._id !== lisingId)
+            })
+     }catch(error){
+        console.log(error)
+     }
+  }
   useEffect(() => {
     if (file) {
       handleFileupload(file);
@@ -243,7 +259,7 @@ const Profile = () => {
                   <p>{listing.name}</p>
                 </Link>
                 <div className="flex flex-col items-center">
-                  <button className="text-red-700 uppercase">Delete</button>
+                  <button onClick={()=>handleDeleteListing(listing._id)} className="text-red-700 uppercase">Delete</button>
                   <button className="text-green-400 uppercase">Edit</button>
                 </div>
               </div>
