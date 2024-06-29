@@ -4,6 +4,8 @@ import { SwiperSlide, Swiper } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import SwiperCore from "swiper";
 import "swiper/css/bundle";
+import { useSelector } from "react-redux";
+import Contact from "./Contact";
 
 const Listing = () => {
   SwiperCore.use([Navigation]);
@@ -11,6 +13,8 @@ const Listing = () => {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [contact,setContact] = useState(false)
+  const { currentUser } = useSelector((state) => state.user);
   useEffect(() => {
     const fetchListing = async () => {
       try {
@@ -44,11 +48,37 @@ const Listing = () => {
               <SwiperSlide key={url}>
                 <div
                   className="h-[550px]"
-                  style={{ background: `url(${url}) center no-repeat`,backgroundSize:"cover" }}
+                  style={{
+                    background: `url(${url}) center no-repeat`,
+                    backgroundSize: "cover",
+                  }}
                 ></div>
               </SwiperSlide>
             ))}
           </Swiper>
+          <div className="mt-4 p-3">
+            <div className="flex flex-col gap-4">
+              <p className="flex items-center gap-4">
+                <span className="text-4xl">
+                  {listing.name ? listing.name : ""}
+                </span>
+                <span className="bg-red-700 p-2 rounded-lg text-white">
+                  For {listing.type}
+                </span>
+              </p>
+              <p className="text-green-600 text-xl italic">
+                Rs.{listing.regularPrice}/-
+              </p>
+              <p className="text-lg text-gray-700">{listing.description}</p>
+              {currentUser && listing.userRef !== currentUser._id && (
+                <button onClick={()=>setContact(true)} className="p-4 bg-red-600 w-40 mx-auto rounded-md text-white hover:bg-red-500">Contact landlord</button>
+              )}
+
+              {
+                contact && <Contact listing={listing}/>
+              }
+            </div>
+          </div>
         </>
       )}
     </main>
